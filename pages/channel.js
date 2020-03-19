@@ -1,38 +1,48 @@
 import 'isomorphic-fetch'
+import Link from 'next/link'
+import Layout from '../components/Layout'
 
 export default class extends React.Component {
 
   static async getInitialProps({ query }) {
     const { id } = query
-    const reqChannel = await fetch(`https://api.audioboom.com/channels/${id}`)
-    const dataChannel = await reqChannel.json()
+
+    const [reqChannel, reqAudios, reqSeries] = await Promise.all([
+      fetch(`https://api.audioboom.com/channels/${id}`),
+      fetch(`https://api.audioboom.com/channels/${id}/audio_clips`),
+      fetch(`https://api.audioboom.com/channels/${id}/child_channels`)
+    ])
+
+    const [dataChannel, dataAudios, dataSeries] = await Promise.all([
+      reqChannel.json(),
+      reqAudios.json(),
+      reqSeries.json()
+    ])
+
     const channel = dataChannel.body.channel;
-
-    const reqAudios = await fetch(`https://api.audioboom.com/channels/${id}/audio_clips`)
-    const dataAudios = await reqAudios.json()
     const audioClips = dataAudios.body.audio_clips;
-
-    const reqSeries = await fetch(`https://api.audioboom.com/channels/${id}/child_channels`)
-    const dataSeries = await reqSeries.json()
     const series = dataSeries.body.channels;
-
 
     return { channel, audioClips, series }
   }
 
   render() {
     const { channel, audioClips, series } = this.props;
-    return (<>
-      <header>Podcasts</header>
+    return (<Layout title="Podcasts">
       <h1>{channel.title}</h1>
       <h2>Ultimos podcasts</h2>
+
       {audioClips.map(clip => (
-        <div>{clip.title}</div>
+        <Link href={`/podcast?id=${clip.id}`} key={clip.id}>
+          <a>{clip.title}</a>
+        </Link>
       ))}
+
       <h2>Series</h2>
       {series.map(serie => (
         <div>{serie.title}</div>
       ))}
+
       <style jsx>{`
         header {
           color: #fff;
@@ -106,7 +116,7 @@ export default class extends React.Component {
           background: white;
         }
       `}</style>
-    </>
+    </Layout>
     )
   }
 }
