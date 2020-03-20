@@ -1,45 +1,31 @@
-import 'isomorphic-fetch'
-import { Link } from '../routes'
-import slug from '../helpers/slug'
-
-export default class extends React.Component {
-
-  static async getInitialProps({ query }){
-    const { id } = query
-    const req = await fetch(`https://api.audioboom.com/audio_clips/${id}.mp3`)
-    const data = await req.json()
-    return { clip: data.body.audio_clip }
-  }
-
-  render() {
-    const { clip } = this.props;
+export default class PodcastPlayer extends React.Component {
+  render () {
+    const { clip, onClose } = this.props
     return (
-      <div>
-        <header>Podcasts</header>
+      <div className='clip'>
+        <nav>
+          { onClose ? 
+            <a className='close' onClick={onClose}>&lt; Volver</a>
+            :
+            <Link
+              route="channel"
+              params={{ slug: slug(clip.channel.title), id: clip.channel.id  }}
+            >
+              <a className='close'>&lt; Volver</a>
+            </Link>
+          }
+        </nav>
 
-        <div className='modal'>
-          <div className='clip'>
-            <nav>
-              <Link
-                route="channel"
-                params={{ slug: slug(clip.channel.title), id: clip.channel.id  }}
-              >
-                <a className='close'>&lt; Volver</a>
-              </Link>
-            </nav>
+        <picture>
+          <div style={{ backgroundImage: `url(${clip.urls.image || clip.channel.urls.logo_image.original})` }} />
+        </picture>
 
-            <picture>
-              <div style={{ backgroundImage: `url(${clip.urls.image || clip.channel.urls.logo_image.original})` }} />
-            </picture>
-
-            <div className='player'>
-              <h3>{ clip.title }</h3>
-              <h6>{ clip.channel.title }</h6>
-              <audio controls autoPlay={true}>
-                <source src={clip.urls.high_mp3} type='audio/mpeg' />
-              </audio>
-            </div>
-          </div>
+        <div className='player'>
+          <h3>{ clip.title }</h3>
+          <h6>{ clip.channel.title }</h6>
+          <audio controls autoPlay={true}>
+            <source src={clip.urls.high_mp3} type='audio/mpeg' />
+          </audio>
         </div>
 
         <style jsx>{`
@@ -111,6 +97,6 @@ export default class extends React.Component {
           }
         `}</style>
       </div>
-    );
+    )
   }
 }

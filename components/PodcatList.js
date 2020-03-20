@@ -1,13 +1,23 @@
-import Link from 'next/link'
+import { Link } from '../routes'
+import slug from '../helpers/slug'
 
 export default class PodcastList extends React.Component {
   render () {
-    const { title, podcastList } = this.props;
+    const { title, podcastList, onClickPodcast } = this.props;
     return <>
       <h2>{title}</h2>
       {podcastList.map(clip => (
-        <Link href={`/podcast?id=${clip.id}`} prefetch key={clip.id}>
-          <a className='podcast'>
+        <Link
+          route="podcast"
+          params={{
+            slug: slug(clip.title),
+            id: clip.id,
+            slugChannel: slug(clip.channel.title),
+            idChannel: clip.channel.id,
+          }}
+          key={clip.id}
+        >
+          <a className='podcast' onClick={(e) => onClickPodcast(e, clip)}>
             <h3>{ clip.title }</h3>
             <div className='meta'>
               { Math.ceil(clip.duration / 60) } minutes
@@ -18,6 +28,13 @@ export default class PodcastList extends React.Component {
       }
       
       <style jsx>{`
+        h2 {
+          padding: 15px;
+          font-size: 2rem;
+          font-weight: 600;
+          margin 0;
+          text-align: center;
+        }
         .podcast {
           display: block;
           text-decoration: none;
